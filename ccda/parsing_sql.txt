@@ -1,0 +1,54 @@
+WITH parameters AS(
+SELECT
+  :Catalog_Name AS Catalog_Name,
+  :Schema_Name AS Schema_Name,
+  :File_Name AS File_Name,
+  :Entity_Name AS Entity_Name,
+  :Component_Name AS Component_Name,
+  :Source_Name AS Source_Name,
+  :Source_Type AS Source_Type
+),
+mapping AS
+(
+SELECT *
+FROM IDENTIFIER(:Catalog_Name || '.' || :Schema_Name || '.source_mappings_ccda_1')
+WHERE Source_Entity_Name = :File_Name
+  AND Target_Entity_Name = :Entity_Name
+  AND Active_Indicator = 'Y'
+),
+all_sections AS
+(
+SELECT Section_Name, Section_Path
+FROM dev_teams.racd.source_mappings_ccda_1
+WHERE Source_Entity_Name = :File_Name
+AND Element_Type = 'Section'
+),
+struct_list AS
+(SELECT Section_Name, Section_Path
+FROM dev_teams.racd.source_mappings_ccda_1
+WHERE Source_Entity_Name = :File_Name
+AND Element_Type = 'Section'
+AND Section_Type = 'Struct'
+),
+array_list AS(
+SELECT Section_Name, Section_Path
+FROM dev_teams.racd.source_mappings_ccda_1
+WHERE Source_Entity_Name = :File_Name
+  AND Target_Entity_Name = :Entity_Name
+  AND Active_Indicator = 'Y'
+  AND Element_Type = 'Section'
+  AND Section_Type = 'Array'
+),
+column_list AS
+(
+  SELECT
+  Section_Name AS Section,
+  Column_Name,
+  Column_Path
+FROM dev_teams.racd.source_mappings_ccda_1
+WHERE Source_Entity_Name = :File_Name
+  AND Target_Entity_Name = :Entity_Name
+  AND Active_Indicator = 'Y'
+  AND Element_Type = 'Column'
+)
+select * from column_list
